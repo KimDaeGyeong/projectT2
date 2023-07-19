@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Cart">
+
+	<insert id="INSERT" parameterType="cart">
+		insert into cart_tbl_02(cartId, custno, productId, amount)
+			values(seq_cartTbl.nextval, #{custno}, #{productId}, #{amount})
+	</insert>
+	
+	<delete id="DELETEONE" parameterType="cart">
+		delete from cart_tbl_02 where cartId = #{cartId}
+	</delete>
+	
+	<delete id="DELETEALL" parameterType="cart">
+		delete from cart_tbl_02 where custno = #{custno} 
+	</delete>
+	
+	<select id="SELECTALL" resultType="cart">
+		select cartId, c.productId as productId, productName, productPrice, amount, productImg as productImgStr 
+			from cart_tbl_02 c left join productTBL p on c.productId = p.productId
+			where custno = #{custno} order by cartId
+	</select>
+	
+	<update id="UPDATE" parameterType="cart">
+		update cart_tbl_02 set amount = #{amount} where cartId = #{cartId}
+	</update>
+	
+	
+	<insert id="OrderJumunseo" parameterType="OrderJumunseo">
+		insert into OrderJumunseo(idx, cartId, custno, productId, productName, amount, orderG)
+			values(seq_cartTbl.nextval, #{cartId}, #{custno}, #{productId}, #{productName}, #{amount}, #{orderG})
+	</insert>
+	
+	<insert id="OrderMoney" parameterType="OrderMoney">
+		insert into OrderMoney(idx, custno, baesongbi, totalMoney)
+			values(seq_cartTbl.nextval, #{Ocustno}, #{baesongbi}, #{totalMoney})
+	</insert>
+
+	<select id="OrderG" resultType="int" parameterType="OrderMoney">
+		select max(idx) as idx from orderMoney where custno = #{Ocustno}
+	</select>
+	
+	<select id="OrderSelectAll" resultType="OrderMoney" parameterType="OrderMoney">
+		select idx, custno as Ocustno, baesongbi, totalMoney, getDate from orderMoney order by idx
+	</select>
+	
+	<select id="OrderSelectOne" resultType="OrderOne" parameterType="OrderOne">		
+		select orderG, m.getDate, m2.custname, m2.zipcode, m2.address, m2.address2, j.idx, j.productId, 
+		j.productName, p.productPrice, j.amount, m.baesongbi, m.totalMoney, m2.phone, p.productImg as productImgStr
+		from orderMoney m join orderJumunseo j 
+		on m.idx = j.orderG join member_tbl_02 m2 
+		on m.custno = m2.custno join productTBL p
+		on j.productId = p.productId
+		where m.idx = #{idx}
+		order by j.idx
+	</select>
+</mapper>
